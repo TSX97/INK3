@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"net/http"
 	"strconv"
+	"unsafe"
 )
 
 type User struct {
@@ -16,6 +17,15 @@ type User struct {
 }
 
 var users []User
+
+func search_by_id(id int) *User {
+	for i := 0; i < len(users); i++ {
+		if users[i].Id == id {
+			return &users[i]
+		}
+	}
+	return nil;
+}
 
 func newUser(id int, name string) *User {
 	return &User{id, name}
@@ -39,11 +49,10 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid id", http.StatusBadRequest)
 		return
 	}
-	for i := 0; i < len(users); i++ {
-		if users[i].Id == id {
-			json.NewEncoder(w).Encode(users[i])
-			return
-		}
+	user := search_by_id(id)
+	if user != nil {
+		json.NewEncoder(w).Encode(user)
+		return
 	}
 	http.Error(w, "user not found", http.StatusNotFound)
 }
@@ -58,11 +67,9 @@ func addUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid json", http.StatusBadRequest)
 		return
 	}
-	for i := 0; i < len(users); i++ {
-		if users[i].Id == user.Id {
-			http.Error(w, "User already exists", http.StatusConflict)
-			return
-		}
+	if search_by_id(user.Id) != nil {
+		http.Error(w, "User already exists", http.StatusConflict)
+		return
 	}
 	users = append(users, user)
 	w.WriteHeader(http.StatusCreated)
@@ -94,33 +101,36 @@ func patchUserName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := 0; i < len(users); i++ {
-		if users[i].Id == id {
-			users[i].Name = *patch.Name
-			json.NewEncoder(w).Encode(&users[i])
-			return
-		}
+	user := search_by_id(id)
+	if user != nil {
+		user.Name = *patch.Name
+		json.NewEncoder(w).Encode(user)
+		return
 	}
 
 	http.Error(w, "User not found", http.StatusNotFound)
 }
 
+//DELETE /users/{id}
 func deleteUser(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Invalid id", http.StatusBadRequest)
 		return
 	}
-	for i := 0; i < len(users); i++ {
-		if users[i].Id == id {
-			users = append(users[:i], users[i+1:]...)
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
+	user := search_by_id(id)
+	if user != nil {
+		idx := (uintptr(unsafe.Pointer(user)) - uintptr(unsafe.Pointer(&users[0]))) / unsafe.Sizeof(users[0])
+		
+		users = append(users[:idx], users[idx+1:]...)
+		w.WriteHeader(http.StatusNoContent)	
+		return
 	}
 	http.Error(w, "User not found", http.StatusNotFound)
 }
 
+
+//GET /health
 func healthChecker(pool *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := pool.Ping(r.Context()); err != nil {

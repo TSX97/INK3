@@ -1,5 +1,3 @@
-- write simple ci/cd pipeline
-- refactor search_by_id in account service
 - add database operatiions to API
 * add Swagger API documentation
 - write registration service API (POST /registration)
@@ -7,3 +5,19 @@
 - add registration service to docker-compose
 - write protobuff for link registration with account service
 - refactor account API
+
+
+
+
+
+
+
+
+~~CORE~~
+
+- clone INK2
+- remove client, client_manager, TENTA, services
+- add WebSocket by Boost::Beast
+- add Thread Pool
+- add Boost::LockFree map/vector of sessions
+
