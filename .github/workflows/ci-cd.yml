@@ -1,81 +1,59 @@
 name: INK3 CI/CD pipeline
 
-#struct:
-#
-#on:
-# push:
-#   main
-#
-#services
-#CI
-# checkout
-# lint
-# unit-tests
-# build
-# integration test
-#CD
-# checkout
-# deploy
-#
-
 on:
   push:
     branches: [ "main" ]
 
-
 jobs:
-  
-  detected-changes:
-    run-on: ubuntu-latest
-  
+
+  detect-changes:
+    runs-on: ubuntu-latest
     outputs:
-    
       services: ${{ steps.filter.outputs.changes }}
-  
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get motified paths
+      - name: Get modified paths
         id: filter
         uses: dorny/paths-filter@v3
-        with: 
-            filters: |
-              account: 'cmd/account/**'
-              registration: 'cmd/registration/**'
-              db: 'db/**'
+        with:
+          filters: |
+            account: 'cmd/account/**'
+            registration: 'cmd/registration/**'
+            db: 'db/**'
+
   ci:
     runs-on: ubuntu-latest
-    needs: detected-changes
+    needs: detect-changes
     if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
     strategy:
       matrix:
-        service:  ${{ fromJSON(needs.detect-changes.outputs.services) }}
+        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
 
     services:
       postgres_db:
         image: postgres:16-alpine
-        potrs: 5432:5432
+        ports:
+          - 5432:5432
         env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
         options: >-
           --health-cmd "pg_isready -U test_user -d test_db"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Go
-        run:  |
-          if [ "${{ matrix.service }}" = "db" ]; then
-            go vet ./db/...
-          else
-            go vet ./cmd/${{ matrix.service }}/...
-          fi
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
 
       - name: Run Linter (Go vet)
         run: |
@@ -86,7 +64,7 @@ jobs:
           fi
 
       - name: Build Service Binaries
-          if: ${{ matrix.service != 'db' }}
+        if: ${{ matrix.service != 'db' }}
         run: |
           cd cmd/${{ matrix.service }}
           CGO_ENABLED=0 go build -o app-bin .
@@ -107,105 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
     steps:
-      - name: Deploy to Production
-      name: INK3 Monorepo CI/CD
-
-on:
-  push:
-    branches: [ "main" ] # Верхний фильтр путей убираем, чтобы плагин мог сам всё вычислять
-
-jobs:
-  # ----------------------------------------------------
-  # 1. ШАГ ИЗМЕНЕНИЙ (Твой первый Job)
-  # ----------------------------------------------------
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.filter.outputs.changes }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4 # Исправлена опечатка (checkout)
-
-      - name: Get modified paths
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            account: 'cmd/account/**'
-            registration: 'cmd/registration/**'
-            db: 'db/**'
-
-  # ----------------------------------------------------
-  # 2. ШАГ СБОРКИ И ТЕСТОВ (Матрица по результатам Paths)
-  # ----------------------------------------------------
-  microservices-ci:
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    # Запускаем только если изменился хотя бы один сервис из списка
-    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
-    
-    strategy:
-      matrix:
-        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
-
-    services:
-      postgres_db:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U test_user -d test_db"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.26'
-
-      - name: Run Linter (go vet)
+      - name: Deploy Placeholder
         run: |
-          if [ "${{ matrix.service }}" = "db" ]; then
-            go vet ./db/...
-          else
-            go vet ./cmd/${{ matrix.service }}/...
-          fi
-
-      - name: Build Service Binaries
-        if: ${{ matrix.service != 'db' }}
-        run: |
-          cd cmd/${{ matrix.service }}
-          CGO_ENABLED=0 go build -o app-bin .
-
-      - name: Run Integration Test (Connect to DB)
-        if: ${{ matrix.service != 'db' }}
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USER: test_user
-          DB_PASSWORD: test_password
-          DB_NAME: test_db
-        run: |
-          timeout 3s ./cmd/${{ matrix.service }}/app-bin || [[ $? -eq 124 ]]
-          echo "Service ${{ matrix.service }} connected to DB successfully!"
-
-  # ----------------------------------------------------
-  # 3. ШАГ ДЕПЛОЯ (CD)
-  # ----------------------------------------------------
-  continuous-deployment:
-    runs-on: ubuntu-latest
-    needs: microservices-ci
-    steps:
-      - name: Deploy to Production
-        run: |
-          echo "[SUCCESS] Deploying configuration to production server..."
+          echo "No deployment target configured. CI passed successfully for services: ${{ needs.detect-changes.outputs.services }}"
 
