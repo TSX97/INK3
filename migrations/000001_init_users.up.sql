@@ -1,0 +1,17 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+	version VARCHAR PRIMARY KEY,
+	applied_at TIMESTAMP CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS Users (
+	id SERIAL PRIMARY KEY,
+	nickname VARCHAR NOT NULL UNIQUE,
+	email VARCHAR NOT NULL UNIQUE,
+	created_at TIMESTAMP CURRENT_TIMESTAMP
+);
+
+INSERT INTO schema_migrations (version) VALUES ("001_init_users");
+
+COMMIT;
