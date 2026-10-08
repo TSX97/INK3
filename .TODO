@@ -1,10 +1,15 @@
-- add database operatiions to API
-* add Swagger API documentation
+~~REGISTRATION~~
 - write registration service API (POST /registration)
 - set up registration service Dockerfile, network
 - add registration service to docker-compose
-- write protobuff for link registration with account service
-- refactor account API
+
+
+~~ACCOUNT~~
+- up gRPC server
+- write GetAllUsers logic
+- decompose main.go into files
+- add gRPC healthcheck
+* add Swagger API documentation
 
 
 ~~CORE~~

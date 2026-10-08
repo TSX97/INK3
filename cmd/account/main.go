@@ -2,142 +2,106 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
 	"github.com/TSX97/INK3/db"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"net/http"
-	"strconv"
-	"unsafe"
+
+	accountv1 "github.com/TSX97/INK3/proto/account/v1"
 )
 
 type User struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id       int
+	Name     string
+	Email    string
+	Password string
 }
 
-var users []User
+type UserRepository interface {
+	CreateUser(ctx context.Context, user User) (bool, error)
+	GetAllUsers(ctx context.Context) ([]User, error)
+}
 
-func search_by_id(id int) *User {
-	for i := 0; i < len(users); i++ {
-		if users[i].Id == id {
-			return &users[i]
+type PostgresUserRepository struct {
+	pool *pgxpool.Pool
+}
+
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (bool, error) {
+	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, name, email, password) VALUES ($1, $2, $3)", user.Id, user.Name, user.Email, user.Password)
+	if err != nil {
+		return false, err
+	}
+	return true, err
+}
+
+func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]User, error) {
+	rows, err := r.pool.Query(ctx, "SELECT * FROM Users")
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []User
+
+	for rows.Next() {
+		var user User
+
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+		if err != nil {
+			return nil, err
 		}
+
+		users = append(users, user)
 	}
-	return nil;
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
-func newUser(id int, name string) *User {
-	return &User{id, name}
+type AccountService struct {
+	users UserRepository
 }
 
-// === === === ===REST===API=== === === === \\
-
-// GET /users
-func getUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(users)
+func (s *AccountService) Register(ctx context.Context, user User) (bool, error) {
+	return s.users.CreateUser(ctx, user)
 }
 
-// GET /users{id}
-func getUser(w http.ResponseWriter, r *http.Request) {
+type AccountServiceServer struct {
+	accountv1.UnimplementedAccountServiceServer
 
-	w.Header().Set("Content-Type", "application/json")
-	id, err := strconv.Atoi(r.PathValue("id"))
+	service *AccountService
+}
+
+func (ass *AccountServiceServer) Register(ctx context.Context, req *accountv1.RegUserRequest) (*accountv1.RegUserResponse, error) {
+	id := req.GetId()
+	name := req.GetName()
+	email := req.GetEmail()
+	password := req.GetPassword()
+
+	user := User{Id: int(id), Name: name, Email: email, Password: password}
+	flag, err := ass.service.Register(ctx, user)
 	if err != nil {
-		http.Error(w, "Invalid id", http.StatusBadRequest)
-		return
-	}
-	user := search_by_id(id)
-	if user != nil {
-		json.NewEncoder(w).Encode(user)
-		return
-	}
-	http.Error(w, "user not found", http.StatusNotFound)
-}
-
-// POST /users
-func addUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, "Invalid json", http.StatusBadRequest)
-		return
-	}
-	if search_by_id(user.Id) != nil {
-		http.Error(w, "User already exists", http.StatusConflict)
-		return
-	}
-	users = append(users, user)
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
-
-}
-
-// PATCH /users/{id}
-func patchUserName(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		http.Error(w, "Invalid id", http.StatusBadRequest)
-		return
+		return nil, err
 	}
 
-	var patch struct {
-		Name *string `json:"name"`
-	}
-	err = json.NewDecoder(r.Body).Decode(&patch)
-	if err != nil {
-		http.Error(w, "Invalid json", http.StatusBadRequest)
-		return
-	}
+	if flag == true {
+		return &accountv1.RegUserResponse{
+			Id:      id,
+			Success: true,
+			Error:   accountv1.RegError_ERROR_UNDEFINED,
+		}, nil
 
-	if patch.Name == nil {
-		http.Error(w, "Invalid name", http.StatusBadRequest)
-		return
-	}
+	} else {
+		return &accountv1.RegUserResponse{
+			Id:      0,
+			Success: false,
+			Error:   accountv1.RegError_ERROR_UNDEFINED,
+		}, nil
 
-	user := search_by_id(id)
-	if user != nil {
-		user.Name = *patch.Name
-		json.NewEncoder(w).Encode(user)
-		return
-	}
-
-	http.Error(w, "User not found", http.StatusNotFound)
-}
-
-//DELETE /users/{id}
-func deleteUser(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		http.Error(w, "Invalid id", http.StatusBadRequest)
-		return
-	}
-	user := search_by_id(id)
-	if user != nil {
-		idx := (uintptr(unsafe.Pointer(user)) - uintptr(unsafe.Pointer(&users[0]))) / unsafe.Sizeof(users[0])
-		
-		users = append(users[:idx], users[idx+1:]...)
-		w.WriteHeader(http.StatusNoContent)	
-		return
-	}
-	http.Error(w, "User not found", http.StatusNotFound)
-}
-
-
-//GET /health
-func healthChecker(pool *pgxpool.Pool) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := pool.Ping(r.Context()); err != nil {
-			http.Error(w, "database is unhealth", http.StatusServiceUnavailable)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
 	}
 
 }
@@ -157,13 +121,4 @@ func main() {
 	}
 
 	fmt.Println("start serve on localhost:8080")
-	http.HandleFunc("GET /users", getUsers)
-	http.HandleFunc("GET /users/{id}", getUser)
-	http.HandleFunc("POST /users", addUser)
-	http.HandleFunc("PATCH /users/{id}", patchUserName)
-	http.HandleFunc("DELETE /users/{id}", deleteUser)
-
-	http.HandleFunc("GET /health", healthChecker(pool))
-
-	http.ListenAndServe(":8080", nil)
 }

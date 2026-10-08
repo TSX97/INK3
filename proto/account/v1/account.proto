@@ -1,20 +1,41 @@
-syntax = "proto3"
+syntax = "proto3";
 
 package account.v1;
-option go_package = "github.com/TSX97/INK3/cmd/account";
+option go_package = "github.com/TSX97/INK3/proto/account/v1;accountv1";
 
 service AccountService {
-        rpc Register (AddUserRequest) returns (AddUserResponse);
+  rpc Register (RegUserRequest) returns (RegUserResponse);
+  rpc GetAllUsers (GetAllRequest) returns (GetAllResponse);
 }
 
-message AddUserRequest {
-        int32 id = 1;
-        string name = 2;
-        string email = 3;
+enum RegError {
+  ERROR_UNDEFINED = 0;
+  ERROR_EMAIL_ALREADY_EXISTS = 1;
+  ERROR_NICKNAME_ALREADY_EXISTS = 2;
+  ERROR_DB_CONN = 3;
+  ERROR_DISK_FULL = 4;
+  ERROR_GRPC_CONN_TIMEOUT = 5;
+  ERROR_TLS_HANDSHAKE_FAULT = 6;
+  ERROR_BLACKLIST_EMAIL = 7;
 }
 
-message AddUserResponse {
-        int32 id = 1;
-        bool success = 2;
-        string error = 3;
+message RegUserRequest {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message RegUserResponse {
+  int32 id = 1;
+  bool success = 2;
+  RegError error = 3;
+}
+
+message GetAllRequest {}
+
+message GetAllResponse {
+  bool success = 1;
+  string result = 2;
+  string error = 3;
 }

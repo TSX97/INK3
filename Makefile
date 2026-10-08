@@ -21,7 +21,18 @@ init:
 	@echo "\$(GREEN)+ hooks are set up succesfuly\$(NC)"
 	
 	@echo "\$(YELLOW)Ready for development, test & use. Try 'docker compose up --build'\$(NC)"
-	
+
+todo:	
 	@echo "===-==-==-=- TODO -=-==-==-==="
 	@cat .TODO
-	
+generate:
+	@echo "\$(GREEN)Starting generate proto/account/v1/account.pb.go...\$(NC)"
+	@protoc --plugin=protoc-gen-go=$(shell go env GOPATH)/bin/protoc-gen-go \
+	       --plugin=protoc-gen-go-grpc=$(shell go env GOPATH)/bin/protoc-gen-go-grpc \
+	       --go_out=. --go_opt=paths=source_relative \
+	       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+	       proto/account/v1/account.proto
+	@echo "Account Service - incapsulated service without HTTP."
+	@echo "All him API works by gRPC. Account Service link other services to Postgres"
+	@echo "\$(GREEN)Finish without errors!\$(NC)"
+
