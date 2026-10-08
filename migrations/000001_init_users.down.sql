@@ -1,6 +1,1 @@
-BEGIN;
-
 DROP TABLE IF EXISTS Users;
-
-
-COMMIT;
