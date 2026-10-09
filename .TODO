@@ -5,11 +5,12 @@
 
 
 ~~ACCOUNT~~
-- up gRPC server
-- write GetAllUsers logic
 - decompose main.go into files
+- - user.go
+- - repository.go
+- - service.go
+- - server.go
 - add gRPC healthcheck
-* add Swagger API documentation
 
 
 ~~CORE~~

@@ -3,18 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
 
 	"github.com/TSX97/INK3/db"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	accountv1 "github.com/TSX97/INK3/proto/account/v1"
 )
 
 type User struct {
-	Id       int
-	Name     string
-	Email    string
-	Password string
+	Id         int
+	Name       string
+	Email      string
+	Created_at time.Time
+	Password   string
 }
 
 type UserRepository interface {
@@ -27,7 +32,7 @@ type PostgresUserRepository struct {
 }
 
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (bool, error) {
-	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, name, email, password) VALUES ($1, $2, $3)", user.Id, user.Name, user.Email, user.Password)
+	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, name, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
 	if err != nil {
 		return false, err
 	}
@@ -35,7 +40,7 @@ func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (boo
 }
 
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]User, error) {
-	rows, err := r.pool.Query(ctx, "SELECT * FROM Users")
+	rows, err := r.pool.Query(ctx, "SELECT id, name, email, created_at, password FROM Users")
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +52,7 @@ func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]User, error
 	for rows.Next() {
 		var user User
 
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Created_at, &user.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -68,6 +73,10 @@ type AccountService struct {
 
 func (s *AccountService) Register(ctx context.Context, user User) (bool, error) {
 	return s.users.CreateUser(ctx, user)
+}
+
+func (s *AccountService) GetAllUsers(ctx context.Context) ([]User, error) {
+	return s.users.GetAllUsers(ctx)
 }
 
 type AccountServiceServer struct {
@@ -92,17 +101,41 @@ func (ass *AccountServiceServer) Register(ctx context.Context, req *accountv1.Re
 		return &accountv1.RegUserResponse{
 			Id:      id,
 			Success: true,
-			Error:   accountv1.RegError_ERROR_UNDEFINED,
+			Error:   accountv1.Error_UNDEFINED,
 		}, nil
 
 	} else {
 		return &accountv1.RegUserResponse{
 			Id:      0,
 			Success: false,
-			Error:   accountv1.RegError_ERROR_UNDEFINED,
+			Error:   accountv1.Error_UNDEFINED,
 		}, nil
 
 	}
+
+}
+
+func (ass *AccountServiceServer) GetAllUsers(ctx context.Context, req *accountv1.GetAllRequest) (*accountv1.GetAllResponse, error) {
+	users, err := ass.service.GetAllUsers(ctx)
+	if err != nil {
+		return &accountv1.GetAllResponse{Success: false, Error: accountv1.Error_UNDEFINED}, nil
+	}
+
+	var protoUsers []*accountv1.UserInfo
+	for _, u := range users {
+		protoUsers = append(protoUsers, &accountv1.UserInfo{
+			Id:        int32(u.Id),
+			Name:      u.Name,
+			Email:     u.Email,
+			CreatedAt: timestamppb.New(u.Created_at),
+		})
+	}
+
+	return &accountv1.GetAllResponse{
+		Success: true,
+		Result:  protoUsers,
+		Error:   accountv1.Error_UNDEFINED,
+	}, nil
 
 }
 
@@ -120,5 +153,21 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("start serve on localhost:8080")
+	repo := &PostgresUserRepository{pool: pool}
+	accService := &AccountService{users: repo}
+	server := &AccountServiceServer{service: accService}
+
+	listener, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		panic(fmt.Sprintf("failed to listen on port 50051: %v", err))
+	}
+
+	grpcServer := grpc.NewServer()
+	accountv1.RegisterAccountServiceServer(grpcServer, server)
+
+	fmt.Println("start serve on localhost:50051")
+	if err := grpcServer.Serve(listener); err != nil {
+		panic(fmt.Sprintf("failed to serve gRPC: %v", err))
+	}
+
 }

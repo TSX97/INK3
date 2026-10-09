@@ -39,7 +39,7 @@ services:
       dockerfile: cmd/account/Dockerfile
     container_name: account
     ports:
-      - "8080:8080"
+      - "50051:50051"
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
