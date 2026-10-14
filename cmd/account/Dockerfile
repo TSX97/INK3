@@ -24,7 +24,7 @@ RUN CGO_ENABLED=0 go build -o account .
 
 #==-==-==-==-==-==-==-==-==-==-==-==-==-==
 
-FROM scratch
+FROM scratch AS runner
 
 WORKDIR /app
 

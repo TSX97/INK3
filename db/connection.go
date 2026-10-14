@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
+	"log/slog"
 )
 
 func NewPool() (*pgxpool.Pool, error) {
@@ -21,6 +22,6 @@ func NewPool() (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("connect to postgres")
+	slog.Info("connect to postgres")
 	return pool, err
 }

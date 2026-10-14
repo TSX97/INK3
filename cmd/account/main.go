@@ -1,10 +1,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"context"
 	"net"
 	"time"
+	"os"
+
+	"log/slog"
 
 	"github.com/TSX97/INK3/db"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,9 +37,10 @@ type PostgresUserRepository struct {
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (bool, error) {
 	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, name, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
 	if err != nil {
+	slog.Error("database query execution failed", "query", "INSERT INTO Users", "error", err)
 		return false, err
 	}
-	return true, err
+	return true, nil
 }
 
 func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -94,10 +98,12 @@ func (ass *AccountServiceServer) Register(ctx context.Context, req *accountv1.Re
 	user := User{Id: int(id), Name: name, Email: email, Password: password}
 	flag, err := ass.service.Register(ctx, user)
 	if err != nil {
+		slog.Info("failed to register user", "err", err, "user_id", id)
 		return nil, err
 	}
 
 	if flag == true {
+		slog.Info("user registered successfully", "user_id", id)
 		return &accountv1.RegUserResponse{
 			Id:      id,
 			Success: true,
@@ -105,6 +111,7 @@ func (ass *AccountServiceServer) Register(ctx context.Context, req *accountv1.Re
 		}, nil
 
 	} else {
+		slog.Warn("account service can`t register user", "err", err, "user_id", id)
 		return &accountv1.RegUserResponse{
 			Id:      0,
 			Success: false,
@@ -141,11 +148,14 @@ func (ass *AccountServiceServer) GetAllUsers(ctx context.Context, req *accountv1
 
 func main() {
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("service", "account")
+	slog.SetDefault(logger)
+
 	pool, err := db.NewPool()
 	if err != nil {
 		panic(err)
 	}
-
+	slog.Info("create new pool of connections to DB")
 	defer pool.Close()
 
 	err = db.Ping(context.Background(), pool)
@@ -159,15 +169,16 @@ func main() {
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		panic(fmt.Sprintf("failed to listen on port 50051: %v", err))
+		panic(fmt.Sprintf("%v", err))
 	}
 
 	grpcServer := grpc.NewServer()
 	accountv1.RegisterAccountServiceServer(grpcServer, server)
 
-	fmt.Println("start serve on localhost:50051")
+	slog.Info("start serve on localhost:50051")
 	if err := grpcServer.Serve(listener); err != nil {
-		panic(fmt.Sprintf("failed to serve gRPC: %v", err))
+		panic(fmt.Sprintf("failed to listen: %v", err))
+
 	}
 
 }
