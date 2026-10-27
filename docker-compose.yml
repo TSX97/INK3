@@ -59,6 +59,20 @@ services:
         condition: service_completed_successfully
     networks:
       - account-net
+      
+
+  registration:
+    build:
+      context: .
+      dockerfile: cmd/registration/Dockerfile
+    container_name: registration
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    #depends_on:
+    #healthheck:
+    networks:
+      - account-net
 
 volumes:
   pgdata:

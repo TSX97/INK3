@@ -4,12 +4,12 @@ WORKDIR /build
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build main.go -o app
+RUN CGO_ENABLED=0 go build -o app ./cmd/registration
 
 FROM scratch AS runner
 
-WORKDIR /run
+WORKDIR /app
 
-COPY --from=builder . .
+COPY --from=builder /builder/app .
 
 CMD ["./app"]
