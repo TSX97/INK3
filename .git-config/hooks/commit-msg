@@ -9,7 +9,7 @@ COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
 echo "start commit-msg hook..."
 
-REGEXP="^(fix|docs|dev|bugfix|refactor|infra)(\([a-z0-9_-]+\))?: .+$|^\(infra\) .+$|^Initial commit: .+$"
+REGEXP="^(fix|feat|docs|dev|bugfix|refactor|infra)(\([a-z0-9_-]+\))?: .+$|^\(infra\) .+$|^Initial commit: .+$"
 
 if ! echo "$COMMIT_MSG" | grep -Eq "$REGEXP"; then
     echo -e "${RED}Error: Unsupported commit message format.${NC}"

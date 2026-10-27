@@ -2,6 +2,7 @@ go 1.26.8
 
 use (
 	./cmd/account
+	./cmd/registration
 	./db
 	./proto
 )

@@ -1,5 +1,4 @@
 ~~REGISTRATION~~
-- write registration service API (POST /registration)
 - set up registration service Dockerfile, network
 - add registration service to docker-compose
 
