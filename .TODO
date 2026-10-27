@@ -1,5 +1,4 @@
 ~~REGISTRATION~~
-- set up registration service Dockerfile, network
 - add registration service to docker-compose
 
 
