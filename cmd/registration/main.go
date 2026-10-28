@@ -15,7 +15,7 @@ type RegistrationGateway struct {
 }
 
 func main() {
-	conn, _ := grpc.Dial("account-service:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, _ := grpc.Dial("account:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer conn.Close()
 
 	gw := &RegistrationGateway{

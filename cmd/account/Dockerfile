@@ -2,32 +2,18 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /build
 
+COPY . .
 
-COPY go.work go.work.sum ./
+RUN go work sync
 
-COPY db/go.mod db/go.sum ./db/
+RUN CGO_ENABLED=0 go build -o /app ./cmd/account
 
-COPY proto/go.mod proto/go.sum ./proto/
+FROM alpine:latest AS runner
 
-COPY cmd/account/go.mod cmd/account/go.sum ./cmd/account/
-
-
-RUN go mod download
-
-COPY db/ ./db/
-COPY proto/ ./proto/
-COPY cmd/account/ ./cmd/account/
-
-WORKDIR /build/cmd/account
-
-RUN CGO_ENABLED=0 go build -o account .
-
-#==-==-==-==-==-==-==-==-==-==-==-==-==-==
-
-FROM scratch AS runner
+RUN apk --no-cache add wget
 
 WORKDIR /app
 
-COPY --from=builder /build/cmd/account/account .
+COPY --from=builder /app .
 
-CMD ["./account"]
+CMD ["./app"]

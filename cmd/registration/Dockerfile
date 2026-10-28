@@ -1,15 +1,21 @@
 FROM golang:latest AS builder
 
-WORKDIR /build
+WORKDIR /src
 
-COPY . .
+COPY proto/ ./proto/
 
-RUN CGO_ENABLED=0 go build -o app ./cmd/registration
+COPY cmd/registration/ ./cmd/registration/
+
+WORKDIR /src/cmd/registration
+
+RUN go mod download
+
+RUN CGO_ENABLED=0 go build -o /app .
 
 FROM scratch AS runner
 
 WORKDIR /app
 
-COPY --from=builder /builder/app .
+COPY --from=builder /app .
 
 CMD ["./app"]

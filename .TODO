@@ -1,5 +1,9 @@
 ~~REGISTRATION~~
-fix docker-compose (registration servise)
+- add logs
+- write healthcheck into API
+- - write gRPC healthcheck
+- - write HTTP healthcheck
+- add tests
 
 
 ~~ACCOUNT~~
@@ -12,10 +16,14 @@ fix docker-compose (registration servise)
 
 
 ~~CORE~~
-
 - clone INK2
 - remove client, client_manager, TENTA, services
 - add WebSocket by Boost::Beast
 - add Thread Pool
 - add Boost::LockFree map/vector of sessions
 
+
+~~INFRA~~
+- remove go.work
+- refactor ci/cd pipeline
+- buy server

@@ -67,12 +67,13 @@ services:
       dockerfile: cmd/registration/Dockerfile
     container_name: registration
     ports:
-      - "8080:8080"
-      - "50051:50051"
-    #depends_on:
-    #healthheck:
+      - "8080:8081"  
+    depends_on:
+      account:
+        condition: service_healthy
     networks:
       - account-net
+
 
 volumes:
   pgdata:
