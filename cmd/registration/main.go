@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -34,24 +33,52 @@ func main() {
 	}
 
 	http.HandleFunc("/register", gw.handleRegister)
-	http.ListenAndServe(":8081", nil)
 
 	slog.Info("start serve",
 		"protocol", "http",
 		"port", ":8081",
 	)
+	http.ListenAndServe(":8081", nil)
 }
 
 func (gw *RegistrationGateway) handleRegister(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method != http.MethodPost {
+		slog.Error("HTTP method not allowed",
+			"method", r.Method,
+			"expected", http.MethodPost,
+		)
+
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var protoReq accountv1.RegUserRequest
-	_ = json.NewDecoder(r.Body).Decode(&protoReq)
+	if err := json.NewDecoder(r.Body).Decode(&protoReq); err != nil {
+		slog.Warn("invalid json", "err", err)
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
 
-	resp, _ := gw.client.Register(context.Background(), &protoReq)
+	slog.Info("register request",
+		"nickname", protoReq.GetName(),
+		"email", protoReq.GetEmail(),
+	)
+
+	resp, err := gw.client.Register(r.Context(), &protoReq)
+	slog.Info("received a response",
+		"response", resp,
+		"protocol", "gRPC",
+	)
+	if err != nil {
+		slog.Warn("grpc Register failed", "err", err, "nickname", protoReq.GetName())
+		http.Error(w, "account service unavailable", http.StatusBadGateway)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		slog.Error("failed to encode response", "err", err)
+	}
+
 }
