@@ -45,13 +45,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      DB_NAME: ${DB_NAME} 
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -68,9 +62,6 @@ services:
     container_name: registration
     ports:
       - "8080:8081"  
-    depends_on:
-      account:
-        condition: service_healthy
     networks:
       - account-net
 

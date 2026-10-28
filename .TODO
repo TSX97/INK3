@@ -4,6 +4,7 @@
 - - write gRPC healthcheck
 - - write HTTP healthcheck
 - add tests
+- wire documentation
 
 
 ~~ACCOUNT~~
@@ -13,6 +14,7 @@
 - - service.go
 - - server.go
 - add gRPC healthcheck
+-write documentation
 
 
 ~~CORE~~
@@ -24,6 +26,5 @@
 
 
 ~~INFRA~~
-- remove go.work
 - refactor ci/cd pipeline
 - buy server

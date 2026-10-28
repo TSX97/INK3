@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"net"
-	"time"
 	"os"
+	"time"
 
 	"log/slog"
 
@@ -35,9 +35,9 @@ type PostgresUserRepository struct {
 }
 
 func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (bool, error) {
-	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, name, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
+	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, nickname, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
 	if err != nil {
-	slog.Error("database query execution failed", "query", "INSERT INTO Users", "error", err)
+		slog.Error("database query execution failed", "query", "INSERT INTO Users", "error", err)
 		return false, err
 	}
 	return true, nil

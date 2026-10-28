@@ -17,24 +17,28 @@ fi
 # 1. Go
 if echo "$STAGED_FILES" | grep -q '\.go$'; then
     echo "check Go..."
+
     GOFMT_FILES=$(echo "$STAGED_FILES" | grep '\.go$' | xargs gofmt -l)
     if [ -n "$GOFMT_FILES" ]; then
         echo -e "${RED}Error: next Go files are not format (try gofmt -w):${NC}"
         echo "$GOFMT_FILES"
         EXIT_CODE=1
     fi
-    
-    # Автоматически собираем модули из go.work в одну строку через пробел
-    GO_MODULES=$(go work edit -json | grep -o '"DiskPath": "[^"]*' | cut -d'"' -f4 | sed 's|$|/...|' | tr '\n' ' ')
-    
-    if [ -n "$GO_MODULES" ]; then
-        if ! go vet $GO_MODULES; then
-            echo -e "${RED}Error: 'go vet' found problems in code.${NC}"
-            EXIT_CODE=1
-        fi
-    else
-        echo -e "${RED}Error: no modules found in go.work${NC}"
+
+    # Найти все go.mod и прогнать go vet в каждом модуле
+    GO_MODULE_DIRS=$(find . -name go.mod -not -path '*/node_modules/*' -not -path '*/.git/*' -exec dirname {} \;)
+
+    if [ -z "$GO_MODULE_DIRS" ]; then
+        echo -e "${RED}Error: no go.mod files found${NC}"
         EXIT_CODE=1
+    else
+        for dir in $GO_MODULE_DIRS; do
+            echo "  vet: $dir"
+            if ! (cd "$dir" && GOWORK=off go vet ./...); then
+                echo -e "${RED}Error: 'go vet' found problems in $dir${NC}"
+                EXIT_CODE=1
+            fi
+        done
     fi
 fi
 
@@ -65,4 +69,3 @@ else
     echo -e "${GREEN}[OK] All tests completed. Commit is succesful!${NC}"
     exit 0
 fi
-

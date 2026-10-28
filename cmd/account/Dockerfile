@@ -1,12 +1,16 @@
 FROM golang:1.26-alpine AS builder
 
-WORKDIR /build
+WORKDIR /src
 
-COPY . .
+COPY proto/ ./proto/
+COPY db/ ./db/
+COPY cmd/account/ ./cmd/account/
 
-RUN go work sync
+WORKDIR /src/cmd/account
 
-RUN CGO_ENABLED=0 go build -o /app ./cmd/account
+RUN go mod download
+
+RUN CGO_ENABLED=0 go build -o /app .
 
 FROM alpine:latest AS runner
 
@@ -17,3 +21,4 @@ WORKDIR /app
 COPY --from=builder /app .
 
 CMD ["./app"]
+
