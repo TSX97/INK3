@@ -1,12 +1,3 @@
-~~REGISTRATION~~
-- add logs
-- write healthcheck into API
-- - write gRPC healthcheck
-- - write HTTP healthcheck
-- add tests
-- wire documentation
-
-
 ~~ACCOUNT~~
 - decompose main.go into files
 - - user.go
@@ -15,6 +6,34 @@
 - - server.go
 - add gRPC healthcheck
 -write documentation
+
+
+~~REGISTRATION~~
+- write healthcheck into API
+- - write gRPC healthcheck
+- - write HTTP healthcheck
+- add tests
+- write documentation
+
+
+~~AUTHENTIFICATION~~
+MVP:
+- design Authentificate in account.proto
+- add Authentificate to account.proto
+- implement simple API (serve HTTP, gRPC)
+- add POST Handler
+- parse JSON -> Protobuf
+- write Dockerfile
+- merge Authentification Service to Docker compose
+- add structured logs
+---- E2E: Front -> POST -> Auth -> gRPC 
+---> Account -> gRPC -> Auth -> gRPC -> Session
+POST MVP:
+- write gRPC healthcheck
+- write HTTP healthcheck
+- add tests
+- write documentation
+
 
 
 ~~CORE~~
@@ -28,3 +47,13 @@
 ~~INFRA~~
 - refactor ci/cd pipeline
 - buy server
+
+ Front
+  /  \
+ /    \
+Reg  Auth
+ \    /
+  \  /
+ Account
+    |
+PostgreS
