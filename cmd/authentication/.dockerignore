@@ -1,0 +1,43 @@
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Go build artifacts
+bin/
+dist/
+build/
+*.exe
+*.test
+*.out
+coverage/
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation
+*.md
+
