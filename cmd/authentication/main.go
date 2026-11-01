@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	accountv1 "github.com/TSX97/INK3/proto/account/v1"
 	"google.golang.org/grpc"
@@ -20,24 +21,34 @@ type AuthGateway struct {
 
 func main() {
 	logger := slog.New(
-		slog.NewJSONHandler(os.Stdout, nil),
-	).With("service", "auth")
+		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		}),
+	).With("service", "authentication")
 
 	slog.SetDefault(logger)
 
+	const (
+		accountAddress = "account:50051"
+		httpAddress    = ":8082"
+	)
+
 	conn, err := grpc.Dial(
-		"account:50051",
+		accountAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		slog.Error("failed to connect to account service", "err", err)
+		slog.Error("failed to connect to account service",
+			"address", accountAddress,
+			"error", err,
+		)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	slog.Info("connect",
-		"protocol", "gRPC",
-		"address", "account:50051",
+	slog.Info("connected to account service",
+		"protocol", "grpc",
+		"address", accountAddress,
 	)
 
 	gw := &AuthGateway{
@@ -47,20 +58,46 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth", gw.handleAuth)
 
-	slog.Info("start serve",
+	slog.Info("authentication service started",
 		"protocol", "http",
-		"port", ":8082",
+		"address", httpAddress,
 	)
 
-	if err := http.ListenAndServe(":8082", mux); err != nil {
-		slog.Error("http server stopped", "err", err)
+	if err := http.ListenAndServe(httpAddress, mux); err != nil {
+		slog.Error("http server stopped",
+			"address", httpAddress,
+			"error", err,
+		)
 		os.Exit(1)
 	}
 }
 
 func (gw *AuthGateway) handleAuth(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	logger := slog.With(
+		"method", r.Method,
+		"path", r.URL.Path,
+		"remote_addr", r.RemoteAddr,
+	)
+
+	statusCode := http.StatusOK
+
+	defer func() {
+		logger.Info("request completed",
+			"status", statusCode,
+			"duration", time.Since(start).String(),
+		)
+	}()
+
+	respond := func(code int, message string) {
+		statusCode = code
+		http.Error(w, message, code)
+	}
+
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		logger.Warn("method not allowed")
+		respond(http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
@@ -68,50 +105,68 @@ func (gw *AuthGateway) handleAuth(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 	if err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		logger.Warn("failed to read request body", "error", err)
+		respond(http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	var protoReq accountv1.AuthUserRequest
 	if err := protojson.Unmarshal(body, &protoReq); err != nil {
-		slog.Warn("invalid JSON", "err", err)
-		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		logger.Warn("invalid JSON", "error", err)
+		respond(http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	slog.Info("auth request", "nickname", protoReq.GetName())
+	logger = logger.With("nickname", protoReq.GetName())
+
+	if protoReq.GetName() == "" || protoReq.GetPassword() == "" {
+		logger.Warn("missing authentication credentials")
+		respond(http.StatusBadRequest, "name and password are required")
+		return
+	}
 
 	resp, err := gw.client.AuthUser(r.Context(), &protoReq)
 	if err != nil {
 		st, ok := status.FromError(err)
 		if !ok {
-			slog.Error("unexpected gRPC error", "err", err)
-			http.Error(w, "account service unavailable", http.StatusBadGateway)
+			logger.Error("unexpected grpc error", "error", err)
+			respond(http.StatusBadGateway, "account service unavailable")
 			return
 		}
 
-		slog.Warn("grpc AuthUser failed",
-			"code", st.Code().String(),
-			"nickname", protoReq.GetName(),
-		)
-
 		switch st.Code() {
 		case codes.Unauthenticated:
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
+			logger.Warn("authentication failed",
+				"grpc_code", st.Code().String(),
+			)
+			respond(http.StatusUnauthorized, "invalid credentials")
+
 		case codes.InvalidArgument:
-			http.Error(w, "invalid request", http.StatusBadRequest)
+			logger.Warn("invalid authentication request",
+				"grpc_code", st.Code().String(),
+			)
+			respond(http.StatusBadRequest, "invalid request")
+
 		case codes.Unavailable:
-			http.Error(w, "account service unavailable", http.StatusServiceUnavailable)
+			logger.Error("account service unavailable",
+				"grpc_code", st.Code().String(),
+			)
+			respond(http.StatusServiceUnavailable, "account service unavailable")
+
 		default:
-			http.Error(w, "authentication failed", http.StatusBadGateway)
+			logger.Error("authentication service error",
+				"grpc_code", st.Code().String(),
+				"grpc_message", st.Message(),
+			)
+			respond(http.StatusBadGateway, "authentication failed")
 		}
 		return
 	}
 
 	responseBody, err := protojson.Marshal(resp)
 	if err != nil {
-		slog.Error("failed to encode response", "err", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		logger.Error("failed to encode response", "error", err)
+		respond(http.StatusInternalServerError, "internal server error")
 		return
 	}
 
@@ -119,6 +174,11 @@ func (gw *AuthGateway) handleAuth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(responseBody); err != nil {
-		slog.Error("failed to write response", "err", err)
+		logger.Error("failed to write response", "error", err)
+		return
 	}
+
+	logger.Info("authentication successful",
+		"user_id", resp.GetId(),
+	)
 }

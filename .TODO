@@ -18,13 +18,6 @@
 
 ~~AUTHENTIFICATION~~
 MVP:
-- design Authentificate in account.proto
-- add Authentificate to account.proto
-- implement simple API (serve HTTP, gRPC)
-- add POST Handler
-- parse JSON -> Protobuf
-- write Dockerfile
-- merge Authentification Service to Docker compose
 - add structured logs
 ---- E2E: Front -> POST -> Auth -> gRPC 
 ---> Account -> gRPC -> Auth -> gRPC -> Session
