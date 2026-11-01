@@ -1,52 +1,29 @@
 syntax = "proto3";
 
 package account.v1;
-option go_package = "github.com/TSX97/INK3/proto/account/v1;accountv1";
-
-import "google/protobuf/timestamp.proto";
+option go_package = "://github.com";
 
 service AccountService {
   rpc Register (RegUserRequest) returns (RegUserResponse);
-  rpc GetAllUsers (GetAllRequest) returns (GetAllResponse);
-}
-
-enum Error {
-  UNDEFINED = 0;
-  EMAIL_ALREADY_EXISTS = 1;
-  NICKNAME_ALREADY_EXISTS = 2;
-  DB_CONN = 3;
-  DISK_FULL = 4;
-  GRPC_CONN_TIMEOUT = 5;
-  TLS_HANDSHAKE_FAULT = 6;
-  BLACKLIST_EMAIL = 7;
-}
-
-message UserInfo {
-        int32 id = 1;
-        string name = 2;
-        string email = 3;
-        google.protobuf.Timestamp created_at = 4;
+  rpc AuthUser (AuthUserRequest) returns (AuthUserResponse);
 }
 
 message RegUserRequest {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  string password = 5;
+  string name = 1;
+  string email = 2;
+  string password = 3;
 }
 
 message RegUserResponse {
   int32 id = 1;
-  bool success = 2;
-  Error error = 3;
 }
 
-message GetAllRequest {}
-
-message GetAllResponse {
-  bool success = 1;
-  repeated UserInfo result = 2;
-  Error error = 3;
-
+message AuthUserRequest {
+  string name = 1;
+  string password = 2;
 }
+
+message AuthUserResponse {
+  int32 id = 1;
+}
+

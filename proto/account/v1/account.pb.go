@@ -4,12 +4,11 @@
 // 	protoc        v3.19.6
 // source: proto/account/v1/account.proto
 
-package accountv1
+package github_com
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -22,152 +21,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Error int32
-
-const (
-	Error_UNDEFINED               Error = 0
-	Error_EMAIL_ALREADY_EXISTS    Error = 1
-	Error_NICKNAME_ALREADY_EXISTS Error = 2
-	Error_DB_CONN                 Error = 3
-	Error_DISK_FULL               Error = 4
-	Error_GRPC_CONN_TIMEOUT       Error = 5
-	Error_TLS_HANDSHAKE_FAULT     Error = 6
-	Error_BLACKLIST_EMAIL         Error = 7
-)
-
-// Enum value maps for Error.
-var (
-	Error_name = map[int32]string{
-		0: "UNDEFINED",
-		1: "EMAIL_ALREADY_EXISTS",
-		2: "NICKNAME_ALREADY_EXISTS",
-		3: "DB_CONN",
-		4: "DISK_FULL",
-		5: "GRPC_CONN_TIMEOUT",
-		6: "TLS_HANDSHAKE_FAULT",
-		7: "BLACKLIST_EMAIL",
-	}
-	Error_value = map[string]int32{
-		"UNDEFINED":               0,
-		"EMAIL_ALREADY_EXISTS":    1,
-		"NICKNAME_ALREADY_EXISTS": 2,
-		"DB_CONN":                 3,
-		"DISK_FULL":               4,
-		"GRPC_CONN_TIMEOUT":       5,
-		"TLS_HANDSHAKE_FAULT":     6,
-		"BLACKLIST_EMAIL":         7,
-	}
-)
-
-func (x Error) Enum() *Error {
-	p := new(Error)
-	*p = x
-	return p
-}
-
-func (x Error) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Error) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_account_v1_account_proto_enumTypes[0].Descriptor()
-}
-
-func (Error) Type() protoreflect.EnumType {
-	return &file_proto_account_v1_account_proto_enumTypes[0]
-}
-
-func (x Error) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Error.Descriptor instead.
-func (Error) EnumDescriptor() ([]byte, []int) {
-	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{0}
-}
-
-type UserInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UserInfo) Reset() {
-	*x = UserInfo{}
-	mi := &file_proto_account_v1_account_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UserInfo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UserInfo) ProtoMessage() {}
-
-func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_account_v1_account_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
-func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *UserInfo) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *UserInfo) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *UserInfo) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *UserInfo) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
 type RegUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Password      string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegUserRequest) Reset() {
 	*x = RegUserRequest{}
-	mi := &file_proto_account_v1_account_proto_msgTypes[1]
+	mi := &file_proto_account_v1_account_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -179,7 +44,7 @@ func (x *RegUserRequest) String() string {
 func (*RegUserRequest) ProtoMessage() {}
 
 func (x *RegUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_account_v1_account_proto_msgTypes[1]
+	mi := &file_proto_account_v1_account_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -192,14 +57,7 @@ func (x *RegUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegUserRequest.ProtoReflect.Descriptor instead.
 func (*RegUserRequest) Descriptor() ([]byte, []int) {
-	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *RegUserRequest) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
+	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RegUserRequest) GetName() string {
@@ -216,13 +74,6 @@ func (x *RegUserRequest) GetEmail() string {
 	return ""
 }
 
-func (x *RegUserRequest) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
 func (x *RegUserRequest) GetPassword() string {
 	if x != nil {
 		return x.Password
@@ -233,15 +84,13 @@ func (x *RegUserRequest) GetPassword() string {
 type RegUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	Error         Error                  `protobuf:"varint,3,opt,name=error,proto3,enum=account.v1.Error" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegUserResponse) Reset() {
 	*x = RegUserResponse{}
-	mi := &file_proto_account_v1_account_proto_msgTypes[2]
+	mi := &file_proto_account_v1_account_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -253,7 +102,7 @@ func (x *RegUserResponse) String() string {
 func (*RegUserResponse) ProtoMessage() {}
 
 func (x *RegUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_account_v1_account_proto_msgTypes[2]
+	mi := &file_proto_account_v1_account_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -266,7 +115,7 @@ func (x *RegUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegUserResponse.ProtoReflect.Descriptor instead.
 func (*RegUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{2}
+	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RegUserResponse) GetId() int32 {
@@ -276,40 +125,79 @@ func (x *RegUserResponse) GetId() int32 {
 	return 0
 }
 
-func (x *RegUserResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *RegUserResponse) GetError() Error {
-	if x != nil {
-		return x.Error
-	}
-	return Error_UNDEFINED
-}
-
-type GetAllRequest struct {
+type AuthUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetAllRequest) Reset() {
-	*x = GetAllRequest{}
+func (x *AuthUserRequest) Reset() {
+	*x = AuthUserRequest{}
+	mi := &file_proto_account_v1_account_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthUserRequest) ProtoMessage() {}
+
+func (x *AuthUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_account_v1_account_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthUserRequest.ProtoReflect.Descriptor instead.
+func (*AuthUserRequest) Descriptor() ([]byte, []int) {
+	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AuthUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AuthUserRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type AuthUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthUserResponse) Reset() {
+	*x = AuthUserResponse{}
 	mi := &file_proto_account_v1_account_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetAllRequest) String() string {
+func (x *AuthUserResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAllRequest) ProtoMessage() {}
+func (*AuthUserResponse) ProtoMessage() {}
 
-func (x *GetAllRequest) ProtoReflect() protoreflect.Message {
+func (x *AuthUserResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_account_v1_account_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -321,69 +209,16 @@ func (x *GetAllRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAllRequest.ProtoReflect.Descriptor instead.
-func (*GetAllRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthUserResponse.ProtoReflect.Descriptor instead.
+func (*AuthUserResponse) Descriptor() ([]byte, []int) {
 	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{3}
 }
 
-type GetAllResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Result        []*UserInfo            `protobuf:"bytes,2,rep,name=result,proto3" json:"result,omitempty"`
-	Error         Error                  `protobuf:"varint,3,opt,name=error,proto3,enum=account.v1.Error" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetAllResponse) Reset() {
-	*x = GetAllResponse{}
-	mi := &file_proto_account_v1_account_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetAllResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetAllResponse) ProtoMessage() {}
-
-func (x *GetAllResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_account_v1_account_proto_msgTypes[4]
+func (x *AuthUserResponse) GetId() int32 {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
+		return x.Id
 	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetAllResponse.ProtoReflect.Descriptor instead.
-func (*GetAllResponse) Descriptor() ([]byte, []int) {
-	return file_proto_account_v1_account_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *GetAllResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *GetAllResponse) GetResult() []*UserInfo {
-	if x != nil {
-		return x.Result
-	}
-	return nil
-}
-
-func (x *GetAllResponse) GetError() Error {
-	if x != nil {
-		return x.Error
-	}
-	return Error_UNDEFINED
+	return 0
 }
 
 var File_proto_account_v1_account_proto protoreflect.FileDescriptor
@@ -391,41 +226,21 @@ var File_proto_account_v1_account_proto protoreflect.FileDescriptor
 const file_proto_account_v1_account_proto_rawDesc = "" +
 	"\n" +
 	"\x1eproto/account/v1/account.proto\x12\n" +
-	"account.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x7f\n" +
-	"\bUserInfo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x129\n" +
-	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xa1\x01\n" +
-	"\x0eRegUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x129\n" +
-	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1a\n" +
-	"\bpassword\x18\x05 \x01(\tR\bpassword\"d\n" +
+	"account.v1\"V\n" +
+	"\x0eRegUserRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"!\n" +
 	"\x0fRegUserResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\x12'\n" +
-	"\x05error\x18\x03 \x01(\x0e2\x11.account.v1.ErrorR\x05error\"\x0f\n" +
-	"\rGetAllRequest\"\x81\x01\n" +
-	"\x0eGetAllResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12,\n" +
-	"\x06result\x18\x02 \x03(\v2\x14.account.v1.UserInfoR\x06result\x12'\n" +
-	"\x05error\x18\x03 \x01(\x0e2\x11.account.v1.ErrorR\x05error*\xae\x01\n" +
-	"\x05Error\x12\r\n" +
-	"\tUNDEFINED\x10\x00\x12\x18\n" +
-	"\x14EMAIL_ALREADY_EXISTS\x10\x01\x12\x1b\n" +
-	"\x17NICKNAME_ALREADY_EXISTS\x10\x02\x12\v\n" +
-	"\aDB_CONN\x10\x03\x12\r\n" +
-	"\tDISK_FULL\x10\x04\x12\x15\n" +
-	"\x11GRPC_CONN_TIMEOUT\x10\x05\x12\x17\n" +
-	"\x13TLS_HANDSHAKE_FAULT\x10\x06\x12\x13\n" +
-	"\x0fBLACKLIST_EMAIL\x10\a2\x9b\x01\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"A\n" +
+	"\x0fAuthUserRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\"\n" +
+	"\x10AuthUserResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id2\x9c\x01\n" +
 	"\x0eAccountService\x12C\n" +
-	"\bRegister\x12\x1a.account.v1.RegUserRequest\x1a\x1b.account.v1.RegUserResponse\x12D\n" +
-	"\vGetAllUsers\x12\x19.account.v1.GetAllRequest\x1a\x1a.account.v1.GetAllResponseB2Z0github.com/TSX97/INK3/proto/account/v1;accountv1b\x06proto3"
+	"\bRegister\x12\x1a.account.v1.RegUserRequest\x1a\x1b.account.v1.RegUserResponse\x12E\n" +
+	"\bAuthUser\x12\x1b.account.v1.AuthUserRequest\x1a\x1c.account.v1.AuthUserResponseB\x0fZ\r://github.comb\x06proto3"
 
 var (
 	file_proto_account_v1_account_proto_rawDescOnce sync.Once
@@ -439,32 +254,23 @@ func file_proto_account_v1_account_proto_rawDescGZIP() []byte {
 	return file_proto_account_v1_account_proto_rawDescData
 }
 
-var file_proto_account_v1_account_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_account_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_account_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_account_v1_account_proto_goTypes = []any{
-	(Error)(0),                    // 0: account.v1.Error
-	(*UserInfo)(nil),              // 1: account.v1.UserInfo
-	(*RegUserRequest)(nil),        // 2: account.v1.RegUserRequest
-	(*RegUserResponse)(nil),       // 3: account.v1.RegUserResponse
-	(*GetAllRequest)(nil),         // 4: account.v1.GetAllRequest
-	(*GetAllResponse)(nil),        // 5: account.v1.GetAllResponse
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*RegUserRequest)(nil),   // 0: account.v1.RegUserRequest
+	(*RegUserResponse)(nil),  // 1: account.v1.RegUserResponse
+	(*AuthUserRequest)(nil),  // 2: account.v1.AuthUserRequest
+	(*AuthUserResponse)(nil), // 3: account.v1.AuthUserResponse
 }
 var file_proto_account_v1_account_proto_depIdxs = []int32{
-	6, // 0: account.v1.UserInfo.created_at:type_name -> google.protobuf.Timestamp
-	6, // 1: account.v1.RegUserRequest.created_at:type_name -> google.protobuf.Timestamp
-	0, // 2: account.v1.RegUserResponse.error:type_name -> account.v1.Error
-	1, // 3: account.v1.GetAllResponse.result:type_name -> account.v1.UserInfo
-	0, // 4: account.v1.GetAllResponse.error:type_name -> account.v1.Error
-	2, // 5: account.v1.AccountService.Register:input_type -> account.v1.RegUserRequest
-	4, // 6: account.v1.AccountService.GetAllUsers:input_type -> account.v1.GetAllRequest
-	3, // 7: account.v1.AccountService.Register:output_type -> account.v1.RegUserResponse
-	5, // 8: account.v1.AccountService.GetAllUsers:output_type -> account.v1.GetAllResponse
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 0: account.v1.AccountService.Register:input_type -> account.v1.RegUserRequest
+	2, // 1: account.v1.AccountService.AuthUser:input_type -> account.v1.AuthUserRequest
+	1, // 2: account.v1.AccountService.Register:output_type -> account.v1.RegUserResponse
+	3, // 3: account.v1.AccountService.AuthUser:output_type -> account.v1.AuthUserResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_proto_account_v1_account_proto_init() }
@@ -477,14 +283,13 @@ func file_proto_account_v1_account_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_account_v1_account_proto_rawDesc), len(file_proto_account_v1_account_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   5,
+			NumEnums:      0,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_proto_account_v1_account_proto_goTypes,
 		DependencyIndexes: file_proto_account_v1_account_proto_depIdxs,
-		EnumInfos:         file_proto_account_v1_account_proto_enumTypes,
 		MessageInfos:      file_proto_account_v1_account_proto_msgTypes,
 	}.Build()
 	File_proto_account_v1_account_proto = out.File

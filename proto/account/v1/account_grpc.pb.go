@@ -4,7 +4,7 @@
 // - protoc             v3.19.6
 // source: proto/account/v1/account.proto
 
-package accountv1
+package github_com
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AccountService_Register_FullMethodName    = "/account.v1.AccountService/Register"
-	AccountService_GetAllUsers_FullMethodName = "/account.v1.AccountService/GetAllUsers"
+	AccountService_Register_FullMethodName = "/account.v1.AccountService/Register"
+	AccountService_AuthUser_FullMethodName = "/account.v1.AccountService/AuthUser"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountServiceClient interface {
 	Register(ctx context.Context, in *RegUserRequest, opts ...grpc.CallOption) (*RegUserResponse, error)
-	GetAllUsers(ctx context.Context, in *GetAllRequest, opts ...grpc.CallOption) (*GetAllResponse, error)
+	AuthUser(ctx context.Context, in *AuthUserRequest, opts ...grpc.CallOption) (*AuthUserResponse, error)
 }
 
 type accountServiceClient struct {
@@ -49,10 +49,10 @@ func (c *accountServiceClient) Register(ctx context.Context, in *RegUserRequest,
 	return out, nil
 }
 
-func (c *accountServiceClient) GetAllUsers(ctx context.Context, in *GetAllRequest, opts ...grpc.CallOption) (*GetAllResponse, error) {
+func (c *accountServiceClient) AuthUser(ctx context.Context, in *AuthUserRequest, opts ...grpc.CallOption) (*AuthUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllResponse)
-	err := c.cc.Invoke(ctx, AccountService_GetAllUsers_FullMethodName, in, out, cOpts...)
+	out := new(AuthUserResponse)
+	err := c.cc.Invoke(ctx, AccountService_AuthUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *accountServiceClient) GetAllUsers(ctx context.Context, in *GetAllReques
 // for forward compatibility.
 type AccountServiceServer interface {
 	Register(context.Context, *RegUserRequest) (*RegUserResponse, error)
-	GetAllUsers(context.Context, *GetAllRequest) (*GetAllResponse, error)
+	AuthUser(context.Context, *AuthUserRequest) (*AuthUserResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -78,8 +78,8 @@ type UnimplementedAccountServiceServer struct{}
 func (UnimplementedAccountServiceServer) Register(context.Context, *RegUserRequest) (*RegUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAccountServiceServer) GetAllUsers(context.Context, *GetAllRequest) (*GetAllResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAllUsers not implemented")
+func (UnimplementedAccountServiceServer) AuthUser(context.Context, *AuthUserRequest) (*AuthUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthUser not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -120,20 +120,20 @@ func _AccountService_Register_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AccountService_GetAllUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllRequest)
+func _AccountService_AuthUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountServiceServer).GetAllUsers(ctx, in)
+		return srv.(AccountServiceServer).AuthUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AccountService_GetAllUsers_FullMethodName,
+		FullMethod: AccountService_AuthUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).GetAllUsers(ctx, req.(*GetAllRequest))
+		return srv.(AccountServiceServer).AuthUser(ctx, req.(*AuthUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,8 +150,8 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AccountService_Register_Handler,
 		},
 		{
-			MethodName: "GetAllUsers",
-			Handler:    _AccountService_GetAllUsers_Handler,
+			MethodName: "AuthUser",
+			Handler:    _AccountService_AuthUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

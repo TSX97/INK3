@@ -5,82 +5,47 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 
 	"log/slog"
 
 	"github.com/TSX97/INK3/db"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	accountv1 "github.com/TSX97/INK3/proto/account/v1"
 )
 
 type User struct {
-	Id         int
-	Name       string
-	Email      string
-	Created_at time.Time
-	Password   string
+	Id       int
+	Name     string
+	Email    string
+	Password string
 }
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user User) (bool, error)
-	GetAllUsers(ctx context.Context) ([]User, error)
+	CreateUser(ctx context.Context, user User) (int, error)
 }
 
 type PostgresUserRepository struct {
 	pool *pgxpool.Pool
 }
 
-func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (bool, error) {
-	_, err := r.pool.Exec(ctx, "INSERT INTO Users (id, nickname, email, password) VALUES ($1, $2, $3, $4)", user.Id, user.Name, user.Email, user.Password)
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user User) (int, error) {
+	var id int
+	err := r.pool.QueryRow(ctx, "INSERT INTO Users (nickname, email, password) VALUES ($1, $2, $3) RETURNING id", user.Name, user.Email, user.Password).Scan(&id)
 	if err != nil {
 		slog.Error("database query execution failed", "query", "INSERT INTO Users", "error", err)
-		return false, err
+		return 0, err
 	}
-	return true, nil
-}
-
-func (r *PostgresUserRepository) GetAllUsers(ctx context.Context) ([]User, error) {
-	rows, err := r.pool.Query(ctx, "SELECT id, name, email, created_at, password FROM Users")
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var users []User
-
-	for rows.Next() {
-		var user User
-
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Created_at, &user.Password)
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, user)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return users, nil
+	return id, nil
 }
 
 type AccountService struct {
 	users UserRepository
 }
 
-func (s *AccountService) Register(ctx context.Context, user User) (bool, error) {
+func (s *AccountService) Register(ctx context.Context, user User) (int, error) {
 	return s.users.CreateUser(ctx, user)
-}
-
-func (s *AccountService) GetAllUsers(ctx context.Context) ([]User, error) {
-	return s.users.GetAllUsers(ctx)
 }
 
 type AccountServiceServer struct {
@@ -90,64 +55,29 @@ type AccountServiceServer struct {
 }
 
 func (ass *AccountServiceServer) Register(ctx context.Context, req *accountv1.RegUserRequest) (*accountv1.RegUserResponse, error) {
-	id := req.GetId()
 	name := req.GetName()
 	email := req.GetEmail()
 	password := req.GetPassword()
 
-	user := User{Id: int(id), Name: name, Email: email, Password: password}
-	flag, err := ass.service.Register(ctx, user)
+	user := User{Name: name, Email: email, Password: password}
+	id, err := ass.service.Register(ctx, user)
 	if err != nil {
-		slog.Info("failed to register user", "err", err, "user_id", id)
+		slog.Info("failed to register user", "err", err, "name", name)
 		return nil, err
 	}
 
-	if flag == true {
-		slog.Info("user registered successfully", "user_id", id)
-		return &accountv1.RegUserResponse{
-			Id:      id,
-			Success: true,
-			Error:   accountv1.Error_UNDEFINED,
-		}, nil
-
-	} else {
-		slog.Warn("account service can`t register user", "err", err, "user_id", id)
-		return &accountv1.RegUserResponse{
-			Id:      0,
-			Success: false,
-			Error:   accountv1.Error_UNDEFINED,
-		}, nil
-
-	}
-
+	slog.Info("user registered successfully", "user_id", id)
+	return &accountv1.RegUserResponse{
+		Id: int32(id),
+	}, nil
 }
 
-func (ass *AccountServiceServer) GetAllUsers(ctx context.Context, req *accountv1.GetAllRequest) (*accountv1.GetAllResponse, error) {
-	users, err := ass.service.GetAllUsers(ctx)
-	if err != nil {
-		return &accountv1.GetAllResponse{Success: false, Error: accountv1.Error_UNDEFINED}, nil
-	}
-
-	var protoUsers []*accountv1.UserInfo
-	for _, u := range users {
-		protoUsers = append(protoUsers, &accountv1.UserInfo{
-			Id:        int32(u.Id),
-			Name:      u.Name,
-			Email:     u.Email,
-			CreatedAt: timestamppb.New(u.Created_at),
-		})
-	}
-
-	return &accountv1.GetAllResponse{
-		Success: true,
-		Result:  protoUsers,
-		Error:   accountv1.Error_UNDEFINED,
-	}, nil
-
+func (ass *AccountServiceServer) AuthUser(ctx context.Context, req *accountv1.AuthUserRequest) (*accountv1.AuthUserResponse, error) {
+	// Временная gRPC заглушка, чтобы прошел коммит
+	return &accountv1.AuthUserResponse{Id: 0}, nil
 }
 
 func main() {
-
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("service", "account")
 	slog.SetDefault(logger)
 
@@ -155,13 +85,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	slog.Info("create new pool of connections to DB")
 	defer pool.Close()
-
-	err = db.Ping(context.Background(), pool)
-	if err != nil {
-		panic(err)
-	}
 
 	repo := &PostgresUserRepository{pool: pool}
 	accService := &AccountService{users: repo}
@@ -178,7 +102,6 @@ func main() {
 	slog.Info("start serve on localhost:50051")
 	if err := grpcServer.Serve(listener); err != nil {
 		panic(fmt.Sprintf("failed to listen: %v", err))
-
 	}
-
 }
+

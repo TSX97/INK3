@@ -25,7 +25,7 @@ init:
 todo:	
 	@echo "===-==-==-=- TODO -=-==-==-==="
 	@cat .TODO
-generate:
+gen:
 	@echo "\$(GREEN)Starting generate proto/account/v1/account.pb.go...\$(NC)"
 	@protoc --plugin=protoc-gen-go=$(shell go env GOPATH)/bin/protoc-gen-go \
 	       --plugin=protoc-gen-go-grpc=$(shell go env GOPATH)/bin/protoc-gen-go-grpc \
