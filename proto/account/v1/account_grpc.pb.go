@@ -4,7 +4,7 @@
 // - protoc             v3.19.6
 // source: proto/account/v1/account.proto
 
-package github_com
+package accountv1
 
 import (
 	context "context"

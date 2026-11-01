@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package account.v1;
-option go_package = "://github.com";
+option go_package = "github.com/TSX97/INK3/proto/account/v1;accountv1";
 
 service AccountService {
   rpc Register (RegUserRequest) returns (RegUserResponse);

@@ -4,7 +4,7 @@
 // 	protoc        v3.19.6
 // source: proto/account/v1/account.proto
 
-package github_com
+package accountv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -240,7 +240,7 @@ const file_proto_account_v1_account_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x05R\x02id2\x9c\x01\n" +
 	"\x0eAccountService\x12C\n" +
 	"\bRegister\x12\x1a.account.v1.RegUserRequest\x1a\x1b.account.v1.RegUserResponse\x12E\n" +
-	"\bAuthUser\x12\x1b.account.v1.AuthUserRequest\x1a\x1c.account.v1.AuthUserResponseB\x0fZ\r://github.comb\x06proto3"
+	"\bAuthUser\x12\x1b.account.v1.AuthUserRequest\x1a\x1c.account.v1.AuthUserResponseB2Z0github.com/TSX97/INK3/proto/account/v1;accountv1b\x06proto3"
 
 var (
 	file_proto_account_v1_account_proto_rawDescOnce sync.Once
