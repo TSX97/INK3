@@ -1,4 +1,3 @@
-#version: '3.8'
 
 services:
   postgres_db:
@@ -45,7 +44,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME} 
+      DB_NAME: ${DB_NAME}
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -53,7 +52,6 @@ services:
         condition: service_completed_successfully
     networks:
       - account-net
-      
 
   registration:
     build:
@@ -61,10 +59,25 @@ services:
       dockerfile: cmd/registration/Dockerfile
     container_name: registration
     ports:
-      - "8080:8081"  
+      - "8080:8081"
+    depends_on:
+      account:
+        condition: service_started
     networks:
       - account-net
 
+  authentication:
+    build:
+      context: .
+      dockerfile: cmd/authentication/Dockerfile
+    container_name: authentication
+    ports:
+      - "8082:8082"
+    depends_on:
+      account:
+        condition: service_started
+    networks:
+      - account-net
 
 volumes:
   pgdata:

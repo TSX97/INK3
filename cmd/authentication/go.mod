@@ -1,4 +1,4 @@
-module github.com/TSX97/INK3/cmd/authentification
+module github.com/TSX97/INK3/cmd/authentication
 
 go 1.26.8
 
